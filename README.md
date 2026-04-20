@@ -1,2 +1,3 @@
 # order-book-engine
-This repository contains the Admin Panel for the shared Stock Exchange infrastructure. Built with Python, this REST API service is dedicated exclusively to the mentor team (Admins). It handles the registration of Broker Platforms, system configuration, and overall market monitoring. Made by Team 3.
+The heart of the Stock Exchange system. The Order Book Engine is a critical, Python-based service responsible for trade matching algorithms. It processes the incoming order flow from the Broker Platforms, maintains the central order book, and ensures the efficient and accurate execution of BUY and SELL matches. 
+**Made by Team 3.**

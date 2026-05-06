@@ -238,3 +238,5 @@ Update order execution state
 
 
 
+The exchange fee rate is configurable through environment variables and is applied on every executed trade.
+

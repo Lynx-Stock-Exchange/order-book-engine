@@ -34,6 +34,19 @@ class Order:
         limit_price=None,
         expires_at=None,
     ):
+         # --- VALIDATION ---
+
+        if quantity <= 0:
+            raise ValueError("Quantity must be positive")
+
+        if order_type == OrderType.LIMIT and limit_price is None:
+            raise ValueError("LIMIT orders require limit_price")
+
+        if order_type == OrderType.MARKET and limit_price is not None:
+            raise ValueError("MARKET orders cannot have limit_price")
+
+        # --- FIELDS ---
+        
         self.order_id = order_id
         self.platform_id = platform_id
         self.platform_user_id = platform_user_id

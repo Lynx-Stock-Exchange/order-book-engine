@@ -1,6 +1,7 @@
 from decimal import Decimal
 from datetime import datetime
 from uuid import uuid4
+from app.config import Config
 
 from app.order_book import OrderBook
 from app.matcher import match
@@ -15,9 +16,6 @@ from app.order import (
     OrderStatus,
     Side,
 )
-
-
-FEE_RATE = Decimal("0.001")  # 0.1%
 
 
 class ExecutionService:
@@ -68,8 +66,8 @@ class ExecutionService:
             fee = (
                 Decimal(str(trade_data["price"]))
                 * Decimal(str(trade_data["quantity"]))
-                * FEE_RATE
-            )
+                * Config.EXCHANGE_FEE_RATE
+            ).quantize(Decimal("0.01"))
 
             trade = Trade(
                 trade_id=str(uuid4()),
@@ -94,9 +92,9 @@ class ExecutionService:
                 if o.order_id == trade.order_id
             )
 
-            total_fee = Decimal(str(updated_order.filled_quantity)) \
+            total_fee = (Decimal(str(updated_order.filled_quantity)) \
                 * Decimal(str(updated_order.average_fill_price)) \
-                * FEE_RATE
+                * Config.EXCHANGE_FEE_RATE).quantize(Decimal("0.01"))
 
             # UPDATE ORDER
             self.order_repo.update_status(

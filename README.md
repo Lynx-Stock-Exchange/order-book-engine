@@ -205,5 +205,36 @@ The following scenarios are validated:
 * CANCELLED orders ignored
 
 
+---
+
+---
+
+# Execution Persistence 
+
+## Overview
+
+The matching engine itself remains fully in-memory, while execution results are persisted into PostgreSQL after each market tick.
+
+---
+
+## execution_service.py
+
+`execution_service.py` acts as the orchestration layer of the Order Book Engine.
+
+It coordinates the complete execution lifecycle:
+
+```text
+Load open orders from database
+        ↓
+Build in-memory OrderBook
+        ↓
+Run matching engine
+        ↓
+Generate trades
+        ↓
+Persist trades into database
+        ↓
+Update order execution state
+
 
 

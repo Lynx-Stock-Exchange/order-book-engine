@@ -1,4 +1,5 @@
 from app.order import OrderType, OrderStatus, Side
+from app.errors import OrderRejected
 
 
 
@@ -32,6 +33,7 @@ def match(order_book, current_price, max_liquidity_per_tick=50):
             "platform_id": order.platform_id,
             "platform_user_id": order.platform_user_id,
             "instrument_id": order.instrument_id,
+            "instrument_type": order.instrument_type,
             "side": order.side.value,
             "quantity": fill_qty,
             "price": price,

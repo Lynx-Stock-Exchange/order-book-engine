@@ -240,3 +240,25 @@ Update order execution state
 
 The exchange fee rate is configurable through environment variables and is applied on every executed trade.
 
+---
+
+## OrderSubmissionService
+
+`order_submission_service.py` handles incoming order validation before orders enter the execution pipeline.
+
+Responsibilities:
+
+* validating incoming orders
+* market-open validation
+* structured rejection handling
+* persisting accepted orders into PostgreSQL
+
+The service raises standardized `OrderRejected` exceptions for invalid or rejected orders.
+
+Example rejection codes include:
+
+* `MARKET_CLOSED`
+* `INVALID_QUANTITY`
+* `INVALID_LIMIT_PRICE`
+* `INVALID_ORDER_TYPE`
+

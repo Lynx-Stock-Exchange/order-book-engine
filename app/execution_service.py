@@ -43,16 +43,16 @@ class ExecutionService:
                 instrument_id=o.instrument_id,
                 order_type=OrderType(o.order_type),
                 side=Side(o.side),
-                quantity=float(o.quantity),
-                limit_price=float(o.limit_price) if o.limit_price is not None else None,
+                quantity=o.quantity,
+                limit_price=o.limit_price,
                 expires_at=o.expires_at,
             )
 
             runtime_order.status = OrderStatus(o.status)
-            runtime_order.filled_quantity = float(o.filled_quantity)
+            runtime_order.filled_quantity = o.filled_quantity
 
             if o.average_fill_price is not None:
-                runtime_order.average_fill_price = float(o.average_fill_price)
+                runtime_order.average_fill_price = o.average_fill_price
 
             runtime_orders.append(runtime_order)
             book.add(runtime_order)
@@ -74,7 +74,7 @@ class ExecutionService:
                 order_id=trade_data["order_id"],
                 platform_id=trade_data["platform_id"],
                 platform_user_id=trade_data["platform_user_id"],
-                instrument_type="STOCK",
+                instrument_type=trade_data["instrument_type"],
                 instrument_id=trade_data["instrument_id"],
                 side=trade_data["side"],
                 quantity=Decimal(str(trade_data["quantity"])),

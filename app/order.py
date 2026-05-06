@@ -1,5 +1,5 @@
 from enum import Enum
-
+ 
 
 class OrderType(Enum):
     MARKET = "MARKET"
@@ -48,6 +48,8 @@ class Order:
 
         self.limit_price = limit_price
         self.average_fill_price = 0.0
+
+        self.exchange_fee = 0.0
 
         self.status = OrderStatus.PENDING
 

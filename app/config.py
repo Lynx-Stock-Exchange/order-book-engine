@@ -14,3 +14,7 @@ class Config:
     EXCHANGE_FEE_RATE = Decimal(
         os.getenv("EXCHANGE_FEE_RATE", "0.001")
     )
+
+    MAX_ORDER_SIZE = Decimal(
+    os.getenv("MAX_ORDER_SIZE", "10000")
+)

@@ -1,6 +1,8 @@
 from enum import Enum
 from decimal import Decimal
 from app.errors import OrderRejected
+from app.config import Config
+from datetime import datetime
  
 
 class OrderType(Enum):
@@ -43,6 +45,12 @@ class Order:
                 code="INVALID_QUANTITY",
                 message="Quantity must be positive."
             )
+        
+        if quantity > Config.MAX_ORDER_SIZE:
+            raise OrderRejected(
+                code="ORDER_SIZE_EXCEEDED",
+                message="Order quantity exceeds platform limit."
+            )
 
         if (
             order_type == OrderType.LIMIT
@@ -66,6 +74,17 @@ class Order:
                 code="INVALID_INSTRUMENT_TYPE",
                 message="Unsupported instrument type."
             )
+        
+        if (
+            instrument_type == "OPTION"
+            and expires_at is not None
+            and expires_at <= datetime.utcnow()
+        ):
+            raise OrderRejected(
+                code="OPTION_EXPIRED",
+                message="The option contract has expired."
+            )
+        
 
         # --- FIELDS ---
         

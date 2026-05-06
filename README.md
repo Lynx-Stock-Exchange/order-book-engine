@@ -116,3 +116,94 @@ Connection OK: (1,)
 ---
 
 
+## Order Book & Matching Engine (Issue #2)
+
+### Overview
+
+This component implements an in-memory order book and matching engine per the exchange specification §6.3.
+
+---
+
+### Order Book
+
+An in-memory `OrderBook` is maintained per ticker.
+
+Supported operations:
+
+* `add(order)` – add new order
+* `remove(order_id)` – remove order
+* `get()` – retrieve current orders
+* `top_levels()` – best bid / ask prices
+* `pressure()` – buy vs sell imbalance
+* `iter_matchable(current_price)` – yields orders eligible for execution
+
+---
+
+### Matching Logic
+
+Matching follows the rules defined in §6.3 of the specification:
+
+* **LIMIT BUY**
+
+  * Executed if `limit_price >= current_price`
+  * Execution price = `limit_price`
+
+* **LIMIT SELL**
+
+  * Executed if `limit_price <= current_price`
+  * Execution price = `limit_price`
+
+* **MARKET orders**
+
+  * Executed immediately at `current_price`
+  * Do not depend on limit conditions
+
+---
+
+###  Partial Fill Behaviour
+
+The engine simulates limited market depth:
+
+* Each tick has a configurable liquidity cap (`max_liquidity_per_tick`)
+* Orders may be partially filled if liquidity is insufficient
+* Remaining quantity stays active and continues in subsequent ticks
+
+This implements the behaviour described in §6.5 of the specification.
+
+---
+
+### Fill Execution
+
+* Supports **partial fills across multiple ticks**
+* Automatically updates:
+
+  * `filled_quantity`
+  * `status` (`PENDING → PARTIALLY_FILLED → FILLED`)
+* Calculates **weighted average fill price**
+
+---
+
+###  No I/O
+
+* Fully in-memory
+* No database or external dependencies
+* Deterministic and testable
+
+---
+
+###  Test Coverage
+
+The following scenarios are validated:
+
+* MARKET order execution
+* LIMIT BUY trigger / no-trigger
+* LIMIT SELL trigger
+* Partial fill within one tick
+* Multi-tick completion (second partial)
+* Competing BUY/SELL orders sharing liquidity
+* Weighted average price calculation
+* CANCELLED orders ignored
+
+
+
+

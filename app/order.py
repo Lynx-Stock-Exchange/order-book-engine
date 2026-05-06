@@ -1,4 +1,6 @@
 from enum import Enum
+from decimal import Decimal
+from app.errors import OrderRejected
  
 
 class OrderType(Enum):
@@ -37,13 +39,33 @@ class Order:
          # --- VALIDATION ---
 
         if quantity <= 0:
-            raise ValueError("Quantity must be positive")
+            raise OrderRejected(
+                code="INVALID_QUANTITY",
+                message="Quantity must be positive."
+            )
 
-        if order_type == OrderType.LIMIT and limit_price is None:
-            raise ValueError("LIMIT orders require limit_price")
-
+        if (
+            order_type == OrderType.LIMIT
+            and (limit_price is None or limit_price <= 0)
+        ):
+            raise OrderRejected(
+                code="INVALID_LIMIT_PRICE",
+                message="LIMIT orders require positive limit_price."
+            )
+        
         if order_type == OrderType.MARKET and limit_price is not None:
-            raise ValueError("MARKET orders cannot have limit_price")
+            raise OrderRejected(
+                code="INVALID_ORDER_TYPE",
+                message="MARKET orders cannot have limit_price."
+            )
+        
+        VALID_INSTRUMENT_TYPES = {"STOCK", "OPTION"}
+        
+        if instrument_type not in VALID_INSTRUMENT_TYPES:
+            raise OrderRejected(
+                code="INVALID_INSTRUMENT_TYPE",
+                message="Unsupported instrument type."
+            )
 
         # --- FIELDS ---
         
@@ -57,12 +79,12 @@ class Order:
         self.side = side
 
         self.quantity = quantity
-        self.filled_quantity = 0
+        self.filled_quantity = Decimal("0")
 
         self.limit_price = limit_price
-        self.average_fill_price = 0.0
+        self.average_fill_price = Decimal("0")
 
-        self.exchange_fee = 0.0
+        self.exchange_fee = Decimal("0")
 
         self.status = OrderStatus.PENDING
 

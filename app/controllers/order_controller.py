@@ -1,4 +1,8 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import (
+    APIRouter,
+    HTTPException,
+    Query
+)
 from uuid import uuid4
 from decimal import Decimal
 from datetime import datetime
@@ -110,6 +114,83 @@ def create_order(payload: dict):
 
     
 
+@router.get("/orders")
+def get_orders(
+
+    platform_user_id: str | None = Query(
+        default=None
+    ),
+
+    status: str | None = Query(
+        default=None
+    )
+):
+
+    orders = order_repo.find_orders(
+        platform_user_id=platform_user_id,
+        status=status
+    )
+
+    return [
+
+        {
+            "order_id": order.order_id,
+
+            "platform_id": order.platform_id,
+
+            "platform_user_id":
+                order.platform_user_id,
+
+            "instrument_type":
+                order.instrument_type,
+
+            "instrument_id":
+                order.instrument_id,
+
+            "order_type":
+                order.order_type,
+
+            "side":
+                order.side,
+
+            "quantity":
+                str(order.quantity),
+
+            "limit_price":
+                str(order.limit_price)
+                if order.limit_price
+                else None,
+
+            "status":
+                order.status,
+
+            "filled_quantity":
+                str(order.filled_quantity),
+
+            "average_fill_price":
+                str(order.average_fill_price)
+                if order.average_fill_price
+                else None,
+
+            "exchange_fee":
+                str(order.exchange_fee),
+
+            "created_at":
+                order.created_at.isoformat(),
+
+            "updated_at":
+                order.updated_at.isoformat(),
+
+            "expires_at":
+                order.expires_at.isoformat()
+                if order.expires_at
+                else None
+        }
+
+        for order in orders
+    ]
+
+
 @router.get("/orders/{order_id}")
 def get_order(order_id: str):
 
@@ -143,3 +224,4 @@ def cancel_order(order_id: str):
         "status": "CANCELLED",
         "order_id": order_id
     }
+

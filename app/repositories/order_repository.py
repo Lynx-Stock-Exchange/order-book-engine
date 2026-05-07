@@ -24,13 +24,23 @@ class OrderRepository:
                         %s, %s, %s, %s, %s, %s
                     )
                 """, (
-                    order.order_id, order.platform_id, order.platform_user_id,
-                    order.instrument_type, order.instrument_id, order.order_type,
-                    order.side, order.quantity, order.limit_price, order.status,
-                    order.filled_quantity, order.average_fill_price,
-                    order.exchange_fee, order.created_at, order.updated_at,
-                    order.expires_at
-                ))
+                        order.order_id,
+                        order.platform_id,
+                        order.platform_user_id,
+                        order.instrument_type,
+                        order.instrument_id,
+                        order.order_type.value,
+                        order.side.value,
+                        order.quantity,
+                        order.limit_price,
+                        order.status.value,
+                        order.filled_quantity,
+                        order.average_fill_price,
+                        order.exchange_fee,
+                        order.created_at,
+                        order.updated_at,
+                        order.expires_at
+                    ))
             conn.commit()
         finally:
             Database.release_connection(conn)
@@ -112,3 +122,28 @@ class OrderRepository:
             updated_at=row[14],
             expires_at=row[15]
         )
+    
+    def find_all_open_orders(self) -> list[Order]:
+
+        conn = Database.get_connection()
+
+        try:
+            with conn.cursor() as cur:
+
+                cur.execute("""
+                    SELECT order_id, platform_id, platform_user_id,
+                        instrument_type, instrument_id, order_type,
+                        side, quantity, limit_price, status,
+                        filled_quantity, average_fill_price,
+                        exchange_fee, created_at, updated_at, expires_at
+                    FROM orders
+                    WHERE status IN ('PENDING', 'PARTIALLY_FILLED')
+                """)
+
+                return [
+                    self._map_row(row)
+                    for row in cur.fetchall()
+                ]
+
+        finally:
+            Database.release_connection(conn)

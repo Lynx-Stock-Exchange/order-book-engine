@@ -262,3 +262,224 @@ Example rejection codes include:
 * `INVALID_LIMIT_PRICE`
 * `INVALID_ORDER_TYPE`
 
+---
+
+# Kafka Integration
+
+The Order Book Engine integrates with Apache Kafka for asynchronous market data ingestion and event publishing.
+
+---
+
+## Kafka Consumer
+
+The engine consumes live market price updates from:
+
+
+For every incoming tick:
+
+1. open orders are loaded from PostgreSQL
+2. an in-memory order book is reconstructed
+3. the matching engine executes eligible orders
+4. trades are persisted
+5. order statuses are updated
+6. execution events are published
+
+---
+
+## Kafka Producer
+
+The engine publishes events to multiple Kafka topics.
+
+### trade_executed
+
+Published whenever a trade is successfully executed.
+
+Example:
+
+```json
+{
+  "type": "TRADE_EXECUTED",
+  "payload": {
+    "trade_id": "...",
+    "order_id": "...",
+    "instrument_id": "AAPL",
+    "side": "BUY",
+    "quantity": "10",
+    "price": "210.50",
+    "exchange_fee": "2.10"
+  }
+}
+```
+
+---
+
+### order_updates
+
+Published whenever an order state changes after execution.
+
+Example:
+
+```json
+{
+  "type": "ORDER_UPDATE",
+  "payload": {
+    "order_id": "...",
+    "status": "PARTIALLY_FILLED",
+    "filled_quantity": "5",
+    "average_fill_price": "210.50",
+    "exchange_fee": "1.05"
+  }
+}
+```
+
+
+
+
+### Create Order
+
+```http
+POST /orders
+```
+
+Example request:
+
+```json
+{
+  "platform_user_id": "user1",
+  "instrument_type": "STOCK",
+  "instrument_id": "AAPL",
+  "order_type": "LIMIT",
+  "side": "BUY",
+  "quantity": 10,
+  "limit_price": 200
+}
+```
+
+---
+
+### Get Order
+
+```http
+GET /orders/{order_id}
+```
+
+Returns full order execution state.
+
+---
+
+### Cancel Order
+
+```http
+DELETE /orders/{order_id}
+```
+
+Cancels a pending or partially filled order.
+
+
+### Open Market
+
+```http
+POST /admin/market/open
+```
+
+---
+
+### Close Market
+
+```http
+POST /admin/market/close
+```
+
+Behaviour:
+
+* LIMIT orders → EXPIRED
+* MARKET orders → REJECTED
+
+---
+
+### Market Status
+
+```http
+GET /admin/market/status
+```
+
+---
+
+# Database Migrations
+
+Run migrations manually:
+
+```bash
+python -m app.migrations.run_migrations
+```
+
+This creates:
+
+* `orders`
+* `trades`
+
+tables and indexes.
+
+---
+
+# Running the Engine
+
+## Start PostgreSQL + Kafka
+
+```bash
+docker compose up -d
+```
+
+---
+
+## Start FastAPI
+
+```bash
+uvicorn app.main:app --reload
+```
+
+---
+
+## Start Kafka Consumer
+
+```bash
+python -m run_consumer
+```
+
+---
+
+# Error Handling
+
+The engine uses structured rejection responses.
+
+Example:
+
+```json
+{
+  "error": {
+    "code": "INVALID_LIMIT_PRICE",
+    "message": "LIMIT orders require positive limit_price.",
+    "details": {}
+  }
+}
+```
+
+---
+
+# Exchange Rules Implemented
+
+The engine currently supports:
+
+* MARKET orders
+* LIMIT orders
+* BUY and SELL sides
+* partial fills
+* weighted average fill pricing
+* configurable liquidity per tick
+* configurable exchange fees
+* market open / close handling
+* order cancellation
+* order expiration
+* Kafka-based event publishing
+
+

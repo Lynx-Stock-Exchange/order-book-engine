@@ -6,6 +6,7 @@ from app.config import Config
 from app.order_book import OrderBook
 from app.matcher import match
 from app.models.trade import Trade
+from app.kafka.producer import publish
 
 from app.repositories.order_repository import OrderRepository
 from app.repositories.trade_repository import TradeRepository
@@ -86,6 +87,19 @@ class ExecutionService:
             # SAVE TRADE
             self.trade_repo.insert(trade)
 
+            publish("trade_executed", {
+                "type": "TRADE_EXECUTED",
+                "payload": {
+                    "trade_id": trade.trade_id,
+                    "order_id": trade.order_id,
+                    "instrument_id": trade.instrument_id,
+                    "side": trade.side,
+                    "quantity": str(trade.quantity),
+                    "price": str(trade.price),
+                    "exchange_fee": str(trade.exchange_fee),
+                }
+            })
+
             # FIND UPDATED ORDER
             updated_order = next(
                 o for o in runtime_orders
@@ -104,5 +118,16 @@ class ExecutionService:
                 average_fill_price=Decimal(str(updated_order.average_fill_price)),
                 exchange_fee=total_fee,
             )
+
+            publish("order_updates", {
+                "type": "ORDER_UPDATE",
+                "payload": {
+                    "order_id": updated_order.order_id,
+                    "status": updated_order.status.value,
+                    "filled_quantity": str(updated_order.filled_quantity),
+                    "average_fill_price": str(updated_order.average_fill_price),
+                    "exchange_fee": str(total_fee),
+                }
+            })
 
         return trades

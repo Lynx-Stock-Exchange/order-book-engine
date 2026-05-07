@@ -147,3 +147,73 @@ class OrderRepository:
 
         finally:
             Database.release_connection(conn)
+
+
+    def find_orders(
+        self,
+        platform_user_id=None,
+        status=None
+    ):
+
+        conn = Database.get_connection()
+
+        try:
+            with conn.cursor() as cur:
+
+                query = """
+                    SELECT
+                        order_id,
+                        platform_id,
+                        platform_user_id,
+                        instrument_type,
+                        instrument_id,
+                        order_type,
+                        side,
+                        quantity,
+                        limit_price,
+                        status,
+                        filled_quantity,
+                        average_fill_price,
+                        exchange_fee,
+                        created_at,
+                        updated_at,
+                        expires_at
+                    FROM orders
+                    WHERE 1=1
+                """
+
+                params = []
+
+                if platform_user_id:
+
+                    query += """
+                        AND platform_user_id = %s
+                    """
+
+                    params.append(
+                        platform_user_id
+                    )
+
+                if status:
+
+                    query += """
+                        AND status = %s
+                    """
+
+                    params.append(status)
+
+                query += """
+                    ORDER BY created_at DESC
+                """
+
+                cur.execute(query, tuple(params))
+
+                rows = cur.fetchall()
+
+                return [
+                    self._map_row(row)
+                    for row in rows
+                ]
+
+        finally:
+            Database.release_connection(conn)

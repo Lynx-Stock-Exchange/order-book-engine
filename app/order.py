@@ -75,15 +75,6 @@ class Order:
                 message="Unsupported instrument type."
             )
         
-        if (
-            instrument_type == "OPTION"
-            and expires_at is not None
-            and expires_at <= datetime.utcnow()
-        ):
-            raise OrderRejected(
-                code="OPTION_EXPIRED",
-                message="The option contract has expired."
-            )
         
 
         # --- FIELDS ---

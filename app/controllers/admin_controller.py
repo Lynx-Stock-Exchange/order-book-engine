@@ -6,11 +6,23 @@ from app.repositories.order_repository import OrderRepository
 from app.repositories.trade_repository import TradeRepository
 from app.kafka.producer import publish
 from datetime import datetime
+from decimal import Decimal
+from datetime import datetime
+
+from app.models.option import (
+    Option,
+    OptionType
+)
+
+from app.repositories.option_repository import (
+    OptionRepository
+)
 
 router = APIRouter(prefix="/admin")
 
 order_repo = OrderRepository()
 trade_repo = TradeRepository()
+option_repo = OptionRepository()
 
 book_service = OrderBookService(
     OrderBook("GLOBAL"),
@@ -62,4 +74,38 @@ def trigger_event(payload: dict):
     return {
         "status": "EVENT_TRIGGERED",
         "event": payload
+    }
+
+@router.post("/options")
+def create_option(payload: dict):
+
+    option = Option(
+        option_id=payload["option_id"],
+
+        underlying_ticker=payload[
+            "underlying_ticker"
+        ],
+
+        option_type=OptionType(
+            payload["option_type"]
+        ),
+
+        strike_price=Decimal(
+            str(payload["strike_price"])
+        ),
+
+        expiry_time=datetime.fromisoformat(
+            payload["expiry_time"]
+        ),
+
+        premium=Decimal(
+            str(payload["premium"])
+        ),
+    )
+
+    option_repo.insert(option)
+
+    return {
+        "status": "CREATED",
+        "option_id": option.option_id
     }

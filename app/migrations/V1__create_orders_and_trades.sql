@@ -41,3 +41,21 @@ CREATE TABLE IF NOT EXISTS trades
 
 CREATE INDEX IF NOT EXISTS idx_trades_order_id ON trades (order_id);
 CREATE INDEX IF NOT EXISTS idx_trades_instrument_id ON trades (instrument_id);
+
+CREATE TABLE IF NOT EXISTS options
+(
+    option_id VARCHAR(255) PRIMARY KEY,
+
+    underlying_ticker VARCHAR(50) NOT NULL,
+
+    option_type VARCHAR(10) NOT NULL
+        CHECK (option_type IN ('CALL', 'PUT')),
+
+    strike_price NUMERIC(19,4) NOT NULL,
+
+    expiry_time TIMESTAMP NOT NULL,
+
+    premium NUMERIC(19,4) NOT NULL,
+
+    is_active BOOLEAN NOT NULL DEFAULT TRUE
+);

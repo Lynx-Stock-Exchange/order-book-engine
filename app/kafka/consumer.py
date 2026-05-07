@@ -1,11 +1,12 @@
 import json
+import os
 from kafka import KafkaConsumer
 
 from app.execution_service import ExecutionService
 
 consumer = KafkaConsumer(
-    "stock_prices",
-    bootstrap_servers="localhost:9092",
+    "stock.prices",
+    bootstrap_servers=os.getenv("KAFKA_BROKERS", "localhost:9092"),
     value_deserializer=lambda m: json.loads(m.decode("utf-8")),
     auto_offset_reset="latest",
     group_id="order-book-engine",

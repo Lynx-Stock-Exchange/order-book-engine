@@ -87,11 +87,12 @@ class ExecutionService:
             # SAVE TRADE
             self.trade_repo.insert(trade)
 
-            publish("trade_executed", {
+            publish("order.updates", {
                 "type": "TRADE_EXECUTED",
                 "payload": {
                     "trade_id": trade.trade_id,
                     "order_id": trade.order_id,
+                    "platform_id": trade.platform_id,
                     "instrument_id": trade.instrument_id,
                     "side": trade.side,
                     "quantity": str(trade.quantity),
@@ -119,10 +120,11 @@ class ExecutionService:
                 exchange_fee=total_fee,
             )
 
-            publish("order_updates", {
+            publish("order.updates", {
                 "type": "ORDER_UPDATE",
                 "payload": {
                     "order_id": updated_order.order_id,
+                    "platform_id": updated_order.platform_id,
                     "status": updated_order.status.value,
                     "filled_quantity": str(updated_order.filled_quantity),
                     "average_fill_price": str(updated_order.average_fill_price),

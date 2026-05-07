@@ -109,6 +109,9 @@ class Order:
 
         self.expires_at = expires_at
 
+        self.created_at = datetime.utcnow()
+        self.updated_at = datetime.utcnow()
+
     @property
     def remaining(self):
         return self.quantity - self.filled_quantity

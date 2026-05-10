@@ -132,4 +132,24 @@ class ExecutionService:
                 }
             })
 
+        # --- 5. PUBLISH BUY & SELL VOLUMES ---
+        # Price Simulation consumes this to calculate order_pressure_component
+        # per-tick per-instrument (spec §6.2: pressure_ratio = (buy-sell)/total)
+        buy_volume = sum(
+            Decimal(str(t["quantity"]))
+            for t in trades
+            if t["side"] == "BUY"
+        )
+        sell_volume = sum(
+            Decimal(str(t["quantity"]))
+            for t in trades
+            if t["side"] == "SELL"
+        )
+        publish(Config.KAFKA_VOLUMES_TOPIC, {
+            "instrument_id": instrument_id,
+            "buy_volume": str(buy_volume),
+            "sell_volume": str(sell_volume),
+            "total_volume": str(buy_volume + sell_volume),
+        })
+
         return trades

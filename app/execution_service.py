@@ -30,12 +30,44 @@ class ExecutionService:
         # --- 1. LOAD OPEN ORDERS FROM DB ---
         db_orders = self.order_repo.find_open_by_ticker(instrument_id)
 
-        # --- 2. BUILD IN-MEMORY ORDER BOOK ---
+        # --- 2. EXPIRE STALE LIMIT ORDERS ---
+        # Any LIMIT order whose expires_at has passed must not enter the book.
+        # We expire them here so the broker platform gets an ORDER_UPDATE
+        # immediately on the same tick rather than waiting for a separate sweep.
+        now = datetime.utcnow()
+        active_db_orders = []
+
+        for o in db_orders:
+            if (
+                o.order_type == "LIMIT"
+                and o.expires_at is not None
+                and o.expires_at <= now
+            ):
+                self.order_repo.update_status(o.order_id, "EXPIRED")
+                publish("order.updates", {
+                    "type": "ORDER_UPDATE",
+                    "payload": {
+                        "order_id": o.order_id,
+                        "platform_id": o.platform_id,
+                        "status": "EXPIRED",
+                        "filled_quantity": str(o.filled_quantity),
+                        "average_fill_price": (
+                            str(o.average_fill_price)
+                            if o.average_fill_price is not None
+                            else None
+                        ),
+                        "exchange_fee": str(o.exchange_fee),
+                    }
+                })
+            else:
+                active_db_orders.append(o)
+
+        # --- 3. BUILD IN-MEMORY ORDER BOOK ---
         book = OrderBook(instrument_id)
 
         runtime_orders = []
 
-        for o in db_orders:
+        for o in active_db_orders:
             runtime_order = RuntimeOrder(
                 order_id=o.order_id,
                 platform_id=o.platform_id,
@@ -58,10 +90,10 @@ class ExecutionService:
             runtime_orders.append(runtime_order)
             book.add(runtime_order)
 
-        # --- 3. MATCH ---
+        # --- 4. MATCH ---
         trades = match(book, current_price)
 
-        # --- 4. PERSIST RESULTS ---
+        # --- 5. PERSIST RESULTS ---
         for trade_data in trades:
 
             fee = (
@@ -132,7 +164,7 @@ class ExecutionService:
                 }
             })
 
-        # --- 5. PUBLISH BUY & SELL VOLUMES ---
+        # --- 6. PUBLISH BUY & SELL VOLUMES ---
         # Price Simulation consumes this to calculate order_pressure_component
         # per-tick per-instrument (spec §6.2: pressure_ratio = (buy-sell)/total)
         buy_volume = sum(

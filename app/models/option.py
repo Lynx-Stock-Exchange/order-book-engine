@@ -24,3 +24,5 @@ class Option:
     premium: Decimal
 
     is_active: bool = True
+
+    auto_exercise: bool = True

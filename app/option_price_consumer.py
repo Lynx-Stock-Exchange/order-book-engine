@@ -1,35 +1,26 @@
 import json
-from datetime import datetime
+import os
 from app.db import Database
 
 from kafka import KafkaConsumer
 
 from app.kafka.producer import publish
+from app.repositories.option_repository import OptionRepository
+from app.option_pricing_service import OptionPricingService
+from app.option_expiry_service import OptionExpiryService
 
-from app.repositories.option_repository import (
-    OptionRepository
-)
-
-from app.option_pricing_service import (
-    OptionPricingService
-)
 
 consumer = KafkaConsumer(
-    "stock_prices",
-
-    bootstrap_servers="localhost:9092",
-
-    value_deserializer=lambda m:
-        json.loads(m.decode("utf-8")),
-
+    os.getenv("KAFKA_STOCK_PRICES_TOPIC", "stock.prices"),
+    bootstrap_servers=os.getenv("KAFKA_BROKERS", "localhost:9092"),
+    value_deserializer=lambda m: json.loads(m.decode("utf-8")),
     auto_offset_reset="latest",
-
     group_id="option-pricing-engine",
 )
 
 option_repo = OptionRepository()
-
 pricing_service = OptionPricingService()
+expiry_service = OptionExpiryService()
 
 
 def start_consumer():
@@ -37,44 +28,31 @@ def start_consumer():
     for message in consumer:
 
         data = message.value
-
         ticker = data["ticker"]
-
         stock_price = data["price"]
 
-        options = option_repo.find_active_by_underlying(
-            ticker
-        )
+        # 1. Auto-exercise and expire any options whose time has come,
+        #    using the current stock price for in-the-money determination
+        expiry_service.expire_options(stock_prices={ticker: stock_price})
+
+        # 2. Reprice remaining active options on this underlying
+        #    (find_active_by_underlying only returns is_active=TRUE rows,
+        #    so just-expired options are already excluded)
+        options = option_repo.find_active_by_underlying(ticker)
 
         for option in options:
 
-            if option.expiry_time <= datetime.utcnow():
-                continue
+            premium = pricing_service.calculate_premium(option, stock_price)
 
-            premium = pricing_service.calculate_premium(
-                option,
-                stock_price
-            )
-
-            option_repo.update_premium(
-                option.option_id,
-                premium
-            )
+            option_repo.update_premium(option.option_id, premium)
 
             publish("option_prices", {
-
                 "option_id": option.option_id,
-
                 "premium": str(premium),
-
-                "underlying_ticker": ticker
+                "underlying_ticker": ticker,
             })
 
-            print(
-                "OPTION REPRICED:",
-                option.option_id,
-                premium
-            )
+            print("OPTION REPRICED:", option.option_id, premium)
 
 
 if __name__ == "__main__":

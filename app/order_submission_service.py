@@ -1,11 +1,13 @@
 from app.market_state import MarketState
 from app.errors import OrderRejected
+from app.repositories.option_repository import OptionRepository
 
 
 class OrderSubmissionService:
 
-    def __init__(self, order_repository):
+    def __init__(self, order_repository, option_repository=None):
         self.order_repo = order_repository
+        self.option_repo = option_repository or OptionRepository()
 
     def submit_order(self, order):
 
@@ -14,6 +16,14 @@ class OrderSubmissionService:
                 code="MARKET_CLOSED",
                 message="Market is currently closed."
             )
+
+        if order.instrument_type == "OPTION":
+            option = self.option_repo.find_by_id(order.instrument_id)
+            if option is None or not option.is_active:
+                raise OrderRejected(
+                    code="OPTION_EXPIRED",
+                    message="The option contract has expired or does not exist."
+                )
 
         self.order_repo.insert(order)
 

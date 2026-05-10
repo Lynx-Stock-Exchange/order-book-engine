@@ -16,5 +16,9 @@ class Config:
     )
 
     MAX_ORDER_SIZE = Decimal(
-    os.getenv("MAX_ORDER_SIZE", "10000")
-)
+        os.getenv("MAX_ORDER_SIZE", "10000")
+    )
+
+    KAFKA_BROKERS = os.getenv("KAFKA_BROKERS", "localhost:9092")
+    KAFKA_STOCK_PRICES_TOPIC = os.getenv("KAFKA_STOCK_PRICES_TOPIC", "stock.prices")
+    KAFKA_VOLUMES_TOPIC = os.getenv("KAFKA_VOLUMES_TOPIC", "order.volumes")

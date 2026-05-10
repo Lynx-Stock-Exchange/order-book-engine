@@ -42,7 +42,7 @@ def create_order(payload: dict):
 
         order = Order(
             order_id=str(uuid4()),
-            platform_id="demo-platform",
+            platform_id=payload["platform_id"],
             platform_user_id=payload["platform_user_id"],
             instrument_type=payload["instrument_type"],
             instrument_id=payload["instrument_id"],

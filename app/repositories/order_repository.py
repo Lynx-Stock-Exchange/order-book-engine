@@ -151,10 +151,14 @@ class OrderRepository:
 
     def find_orders(
         self,
+        platform_id=None,
         platform_user_id=None,
-        status=None
+        status=None,
+        from_date=None,
+        to_date=None,
+        page=1,
+        page_size=50,
     ):
-
         conn = Database.get_connection()
 
         try:
@@ -184,27 +188,34 @@ class OrderRepository:
 
                 params = []
 
+                if platform_id:
+                    query += " AND platform_id = %s"
+                    params.append(platform_id)
+
                 if platform_user_id:
-
-                    query += """
-                        AND platform_user_id = %s
-                    """
-
-                    params.append(
-                        platform_user_id
-                    )
+                    query += " AND platform_user_id = %s"
+                    params.append(platform_user_id)
 
                 if status:
-
-                    query += """
-                        AND status = %s
-                    """
-
+                    query += " AND status = %s"
                     params.append(status)
 
-                query += """
-                    ORDER BY created_at DESC
-                """
+                if from_date:
+                    query += " AND created_at >= %s"
+                    params.append(from_date)
+
+                if to_date:
+                    query += " AND created_at <= %s"
+                    params.append(to_date)
+
+                query += " ORDER BY created_at DESC"
+
+                # Pagination
+                page = max(1, page)
+                page_size = max(1, min(page_size, 200))
+                query += " LIMIT %s OFFSET %s"
+                params.append(page_size)
+                params.append((page - 1) * page_size)
 
                 cur.execute(query, tuple(params))
 

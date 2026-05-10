@@ -33,7 +33,8 @@ def get_options():
             "strike_price": str(o.strike_price),
             "expiry_time": o.expiry_time.isoformat(),
             "premium": str(o.premium),
-            "is_active": o.is_active
+            "is_active": o.is_active,
+            "auto_exercise": o.auto_exercise,
         }
         for o in options
     ]
@@ -65,5 +66,7 @@ def get_option(option_id: str):
         "premium":
             str(option.premium),
         "is_active":
-            option.is_active
+            option.is_active,
+        "auto_exercise":
+            option.auto_exercise,
     }

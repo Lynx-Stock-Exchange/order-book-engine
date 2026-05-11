@@ -482,4 +482,73 @@ The engine currently supports:
 * order expiration
 * Kafka-based event publishing
 
+  
+
+## Market Statistics
+
+Retrieve aggregated exchange statistics calculated from persisted trade data.
+
+### Endpoint
+
+```http
+GET /market/stats
+```
+
+### Example Response
+
+```json
+{
+  "total_revenue": "8.0000",
+  "total_trades": 4,
+  "total_volume": "40.0000"
+}
+```
+
+Returns:
+
+* total exchange revenue
+* total executed trades
+* total traded volume
+
+---
+
+## Market Tick Simulation (Admin)
+
+Publish simulated stock price ticks into Kafka for testing and execution triggering.
+
+### Endpoint
+
+```http
+POST /admin/market/tick
+```
+
+### Example Request
+
+```json
+{
+  "ticker": "AAPL",
+  "price": 190
+}
+```
+
+### Example Response
+
+```json
+{
+  "status": "PUBLISHED",
+  "payload": {
+    "ticker": "AAPL",
+    "price": 190
+  }
+}
+```
+
+This endpoint is mainly intended for:
+
+* local development
+* execution testing
+* Kafka event simulation
+* demo scenarios
+
+
 

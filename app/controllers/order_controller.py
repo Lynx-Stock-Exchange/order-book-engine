@@ -9,6 +9,7 @@ from datetime import datetime
 from app.order_book import OrderBook
 from app.order_book_service import OrderBookService
 from app.repositories.trade_repository import TradeRepository
+from app.market_stats_service import MarketStatsService
 
 from app.order import (
     Order,
@@ -211,4 +212,13 @@ def cancel_order(
         "status": "CANCELLED",
         "order_id": order_id,
     }
+
+
+
+@router.get("/market/stats")
+def get_market_stats():
+    return MarketStatsService.get_market_stats()
+
+from app.kafka.producer import publish
+
 

@@ -109,3 +109,13 @@ def create_option(payload: dict):
         "status": "CREATED",
         "option_id": option.option_id
     }
+
+@router.post("/market/tick")
+def trigger_tick(payload: dict):
+
+    publish("stock.prices", payload)
+
+    return {
+        "status": "PUBLISHED",
+        "payload": payload
+    }

@@ -107,6 +107,14 @@ def create_option(payload: dict):
 
     return {
         "status": "CREATED",
+        "option_id": option.option_id,
+        "underlying_ticker": option.underlying_ticker,
+        "option_type": option.option_type.value,
+        "strike_price": str(option.strike_price),
+        "expiry_time": option.expiry_time.isoformat(),
+        "premium": str(option.premium),
+        "is_active": option.is_active,
+        "auto_exercise": option.auto_exercise,
         "option_id": option.option_id
     }
 

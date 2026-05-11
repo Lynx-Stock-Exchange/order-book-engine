@@ -19,17 +19,21 @@ def start_consumer():
 
     for message in consumer:
 
-        data = message.value
+        try:
+            data = message.value
 
-        instrument_id = data["ticker"]
-        current_price = data["price"]
+            instrument_id = data["ticker"]
+            current_price = data["price"]
 
-        trades = execution_service.execute_tick(
-            instrument_id=instrument_id,
-            current_price=current_price,
-        )
+            trades = execution_service.execute_tick(
+                instrument_id=instrument_id,
+                current_price=current_price,
+            )
 
-        print("TRADES:", trades)
+            print("TRADES:", trades)
+
+        except Exception as e:
+            print(f"ERROR processing tick (topic={message.topic} partition={message.partition} offset={message.offset}): {e}")
 
 
 if __name__ == "__main__":

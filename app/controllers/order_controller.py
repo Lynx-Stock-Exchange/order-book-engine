@@ -60,12 +60,22 @@ def create_order(
         expires_at=datetime.fromisoformat(payload["expires_at"])
         if payload.get("expires_at")
         else None,
+        client_order_id=payload.get("client_order_id"),
     )
 
-    submission_service.submit_order(order)
+    result = submission_service.submit_order(order)
+
+    if result.get("status") == "DUPLICATE":
+        existing = order_repo.find_by_order_id(result["order_id"])
+        return {
+            "order_id": existing.order_id,
+            "client_order_id": existing.client_order_id,
+            "status": "DUPLICATE",
+        }
 
     return {
         "order_id": order.order_id,
+        "client_order_id": order.client_order_id,
         "platform_id": order.platform_id,
         "platform_user_id": order.platform_user_id,
         "instrument_type": order.instrument_type,

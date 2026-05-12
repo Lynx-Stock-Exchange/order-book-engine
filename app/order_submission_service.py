@@ -11,6 +11,19 @@ class OrderSubmissionService:
 
     def submit_order(self, order):
 
+        # Idempotency check: if a client_order_id was provided, return the
+        # existing order rather than inserting a duplicate.
+        if order.client_order_id:
+            existing = self.order_repo.find_by_client_order_id(
+                order.platform_id, order.client_order_id
+            )
+            if existing:
+                return {
+                    "status": "DUPLICATE",
+                    "order_id": existing.order_id,
+                    "client_order_id": existing.client_order_id,
+                }
+
         if not MarketState.is_open:
             raise OrderRejected(
                 code="MARKET_CLOSED",

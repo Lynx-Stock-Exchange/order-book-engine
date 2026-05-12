@@ -22,3 +22,4 @@ class Order:
     average_fill_price: Optional[Decimal] = None
     exchange_fee: Decimal = Decimal("0")
     expires_at: Optional[datetime] = None
+    client_order_id: Optional[str] = None

@@ -11,10 +11,12 @@ from app.controllers.option_controller import (
     router as option_router
 )
 from app.auth import verify_internal_token, verify_admin_token
+from app.market_state import MarketState
 
 app = FastAPI()
 
 Database.init_pool()
+MarketState.load_from_db()
 
 app.add_exception_handler(
     OrderRejected,

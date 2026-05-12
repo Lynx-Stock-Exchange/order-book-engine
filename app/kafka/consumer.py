@@ -1,5 +1,6 @@
 import json
 import os
+from decimal import Decimal
 from kafka import KafkaConsumer
 from app.db import Database
 from app.execution_service import ExecutionService
@@ -23,7 +24,7 @@ def start_consumer():
             data = message.value
 
             instrument_id = data["ticker"]
-            current_price = data["price"]
+            current_price = Decimal(str(data["price"]))
 
             trades = execution_service.execute_tick(
                 instrument_id=instrument_id,

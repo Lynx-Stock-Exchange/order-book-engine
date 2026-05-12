@@ -1,5 +1,6 @@
 import json
 import os
+from decimal import Decimal
 from kafka import KafkaConsumer
 from app.db import Database
 from app.execution_service import ExecutionService

@@ -35,6 +35,11 @@ def open_market():
 
     MarketState.open_market()
 
+    publish("market_events", {
+        "type": "MARKET_OPENED",
+        "timestamp": datetime.utcnow().isoformat(),
+    })
+
     return {
         "market_open": True
     }
@@ -46,6 +51,11 @@ def close_market():
     MarketState.close_market()
 
     result = book_service.handle_market_close()
+
+    publish("market_events", {
+        "type": "MARKET_CLOSED",
+        "timestamp": datetime.utcnow().isoformat(),
+    })
 
     return {
         "market_open": False,

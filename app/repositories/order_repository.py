@@ -19,10 +19,11 @@ class OrderRepository:
                         instrument_type, instrument_id, order_type,
                         side, quantity, limit_price, status,
                         filled_quantity, average_fill_price,
-                        exchange_fee, created_at, updated_at, expires_at
+                        exchange_fee, created_at, updated_at, expires_at,
+                        client_order_id
                     ) VALUES (
                         %s, %s, %s, %s, %s, %s, %s, %s, %s, %s,
-                        %s, %s, %s, %s, %s, %s
+                        %s, %s, %s, %s, %s, %s, %s
                     )
                 """, (
                         order.order_id,
@@ -40,7 +41,8 @@ class OrderRepository:
                         order.exchange_fee,
                         order.created_at,
                         order.updated_at,
-                        order.expires_at
+                        order.expires_at,
+                        order.client_order_id,
                     ))
             conn.commit()
         finally:
@@ -55,10 +57,32 @@ class OrderRepository:
                            instrument_type, instrument_id, order_type,
                            side, quantity, limit_price, status,
                            filled_quantity, average_fill_price,
-                           exchange_fee, created_at, updated_at, expires_at
+                           exchange_fee, created_at, updated_at, expires_at,
+                           client_order_id
                     FROM orders
                     WHERE order_id = %s
                 """, (order_id,))
+                row = cur.fetchone()
+                return self._map_row(row) if row else None
+        finally:
+            Database.release_connection(conn)
+
+    def find_by_client_order_id(
+        self, platform_id: str, client_order_id: str
+    ) -> Optional[Order]:
+        conn = Database.get_connection()
+        try:
+            with conn.cursor() as cur:
+                cur.execute("""
+                    SELECT order_id, platform_id, platform_user_id,
+                           instrument_type, instrument_id, order_type,
+                           side, quantity, limit_price, status,
+                           filled_quantity, average_fill_price,
+                           exchange_fee, created_at, updated_at, expires_at,
+                           client_order_id
+                    FROM orders
+                    WHERE platform_id = %s AND client_order_id = %s
+                """, (platform_id, client_order_id))
                 row = cur.fetchone()
                 return self._map_row(row) if row else None
         finally:
@@ -73,7 +97,8 @@ class OrderRepository:
                            instrument_type, instrument_id, order_type,
                            side, quantity, limit_price, status,
                            filled_quantity, average_fill_price,
-                           exchange_fee, created_at, updated_at, expires_at
+                           exchange_fee, created_at, updated_at, expires_at,
+                           client_order_id
                     FROM orders
                     WHERE instrument_id = %s
                       AND status IN ('PENDING', 'PARTIALLY_FILLED')
@@ -121,34 +146,27 @@ class OrderRepository:
             exchange_fee=row[12],
             created_at=row[13],
             updated_at=row[14],
-            expires_at=row[15]
+            expires_at=row[15],
+            client_order_id=row[16],
         )
-    
+
     def find_all_open_orders(self) -> list[Order]:
-
         conn = Database.get_connection()
-
         try:
             with conn.cursor() as cur:
-
                 cur.execute("""
                     SELECT order_id, platform_id, platform_user_id,
                         instrument_type, instrument_id, order_type,
                         side, quantity, limit_price, status,
                         filled_quantity, average_fill_price,
-                        exchange_fee, created_at, updated_at, expires_at
+                        exchange_fee, created_at, updated_at, expires_at,
+                        client_order_id
                     FROM orders
                     WHERE status IN ('PENDING', 'PARTIALLY_FILLED')
                 """)
-
-                return [
-                    self._map_row(row)
-                    for row in cur.fetchall()
-                ]
-
+                return [self._map_row(row) for row in cur.fetchall()]
         finally:
             Database.release_connection(conn)
-
 
     def find_orders(
         self,
@@ -161,32 +179,19 @@ class OrderRepository:
         page_size=50,
     ):
         conn = Database.get_connection()
-
         try:
             with conn.cursor() as cur:
-
                 query = """
                     SELECT
-                        order_id,
-                        platform_id,
-                        platform_user_id,
-                        instrument_type,
-                        instrument_id,
-                        order_type,
-                        side,
-                        quantity,
-                        limit_price,
-                        status,
-                        filled_quantity,
-                        average_fill_price,
-                        exchange_fee,
-                        created_at,
-                        updated_at,
-                        expires_at
+                        order_id, platform_id, platform_user_id,
+                        instrument_type, instrument_id, order_type,
+                        side, quantity, limit_price, status,
+                        filled_quantity, average_fill_price,
+                        exchange_fee, created_at, updated_at, expires_at,
+                        client_order_id
                     FROM orders
                     WHERE 1=1
                 """
-
                 params = []
 
                 if platform_id:
@@ -211,7 +216,6 @@ class OrderRepository:
 
                 query += " ORDER BY created_at DESC"
 
-                # Pagination
                 page = max(1, page)
                 page_size = max(1, min(page_size, 200))
                 query += " LIMIT %s OFFSET %s"
@@ -219,13 +223,7 @@ class OrderRepository:
                 params.append((page - 1) * page_size)
 
                 cur.execute(query, tuple(params))
-
-                rows = cur.fetchall()
-
-                return [
-                    self._map_row(row)
-                    for row in rows
-                ]
+                return [self._map_row(row) for row in cur.fetchall()]
 
         finally:
             Database.release_connection(conn)

@@ -22,3 +22,6 @@ class Config:
     KAFKA_BROKERS = os.getenv("KAFKA_BROKERS", "localhost:9092")
     KAFKA_STOCK_PRICES_TOPIC = os.getenv("KAFKA_STOCK_PRICES_TOPIC", "stock.prices")
     KAFKA_VOLUMES_TOPIC = os.getenv("KAFKA_VOLUMES_TOPIC", "order.volumes")
+
+    INTERNAL_API_KEY = os.getenv("INTERNAL_API_KEY", "")
+    ADMIN_API_KEY = os.getenv("ADMIN_API_KEY", "")

@@ -7,7 +7,6 @@ from app.repositories.trade_repository import TradeRepository
 from app.kafka.producer import publish
 from datetime import datetime
 from decimal import Decimal
-from datetime import datetime
 
 from app.models.option import (
     Option,
@@ -125,7 +124,6 @@ def create_option(payload: dict):
         "premium": str(option.premium),
         "is_active": option.is_active,
         "auto_exercise": option.auto_exercise,
-        "option_id": option.option_id
     }
 
 @router.post("/market/tick")

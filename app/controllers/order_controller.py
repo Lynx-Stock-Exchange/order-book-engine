@@ -67,17 +67,9 @@ def create_order(payload: dict):
             "instrument_type": order.instrument_type,
             "instrument_id": order.instrument_id,
 
-            "order_type": (
-                order.order_type.value
-                if hasattr(order.order_type, "value")
-                else order.order_type
-            ),
+            "order_type": order.order_type.value,
 
-            "side": (
-                order.side.value
-                if hasattr(order.side, "value")
-                else order.side
-            ),
+            "side": order.side.value,
 
             "quantity": str(order.quantity),
 
@@ -87,11 +79,7 @@ def create_order(payload: dict):
                 else None
             ),
 
-            "status": (
-                order.status.value
-                if hasattr(order.status, "value")
-                else order.status
-            ),
+            "status": order.status.value,
 
             "filled_quantity": str(order.filled_quantity),
 
@@ -218,7 +206,3 @@ def cancel_order(
 @router.get("/market/stats")
 def get_market_stats():
     return MarketStatsService.get_market_stats()
-
-from app.kafka.producer import publish
-
-

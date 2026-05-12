@@ -1,3 +1,4 @@
+from decimal import Decimal
 from app.order import Side
 from app.order import OrderStatus, OrderType
 
@@ -48,6 +49,7 @@ class OrderBook:
     
     def iter_matchable(self, current_price):
         orders = []
+        current_price = Decimal(str(current_price))
 
         for order in self.buy_orders + self.sell_orders:
             if order.status not in (

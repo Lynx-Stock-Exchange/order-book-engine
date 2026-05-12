@@ -4,11 +4,12 @@ from datetime import datetime
 
 from app.db import Database
 from app.models.order import Order
+from app.order import Order as RuntimeOrder
 
 
 class OrderRepository:
 
-    def insert(self, order: Order) -> None:
+    def insert(self, order: RuntimeOrder) -> None:
         conn = Database.get_connection()
         try:
             with conn.cursor() as cur:

@@ -92,7 +92,7 @@ class Order:
         self.filled_quantity = Decimal("0")
 
         self.limit_price = limit_price
-        self.average_fill_price = Decimal("0")
+        self.average_fill_price = None
 
         self.exchange_fee = Decimal("0")
 
@@ -115,7 +115,7 @@ class Order:
         ]:
             return
 
-        total_value = self.average_fill_price * self.filled_quantity
+        total_value = (self.average_fill_price or Decimal("0")) * self.filled_quantity
         total_value += price * qty
 
         self.filled_quantity += qty

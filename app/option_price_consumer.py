@@ -1,5 +1,6 @@
 import json
 import os
+from decimal import Decimal
 from app.db import Database
 
 from kafka import KafkaConsumer
@@ -29,7 +30,7 @@ def start_consumer():
 
         data = message.value
         ticker = data["ticker"]
-        stock_price = data["price"]
+        stock_price = Decimal(str(data["price"]))
 
         # 1. Auto-exercise and expire any options whose time has come,
         #    using the current stock price for in-the-money determination

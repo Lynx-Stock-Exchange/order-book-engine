@@ -12,10 +12,12 @@ from app.controllers.option_controller import (
 )
 from app.auth import verify_internal_token, verify_admin_token
 from app.market_state import MarketState
+from app.migrations.run_migration import run_migrations
 
 app = FastAPI()
 
 Database.init_pool()
+run_migrations()
 MarketState.load_from_db()
 
 app.add_exception_handler(

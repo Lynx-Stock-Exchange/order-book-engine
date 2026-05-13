@@ -410,7 +410,7 @@ GET /admin/market/status
 Run migrations manually:
 
 ```bash
-python -m app.migrations.run_migrations
+python -m app.migrations.run_migration
 ```
 
 This creates:
@@ -549,6 +549,5 @@ This endpoint is mainly intended for:
 * execution testing
 * Kafka event simulation
 * demo scenarios
-
 
 

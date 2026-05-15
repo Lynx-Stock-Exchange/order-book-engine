@@ -114,6 +114,7 @@ class ExecutionService:
             publish("orders.updates", {
                 "order_id": updated_order.order_id,
                 "platform_id": updated_order.platform_id,
+                "platform_user_id": updated_order.platform_user_id,
                 "status": updated_order.status.value,
                 "filled_quantity": int(updated_order.filled_quantity),
                 "average_fill_price": float(updated_order.average_fill_price),

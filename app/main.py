@@ -17,8 +17,10 @@ async def lifespan(app: FastAPI):
     run_migrations()
     from app.kafka.consumer import start_consumer
     from app.kafka.admin_consumer import start_admin_consumer
+    from app.kafka.order_consumer import start_order_consumer
     threading.Thread(target=start_consumer, daemon=True).start()
     threading.Thread(target=start_admin_consumer, daemon=True).start()
+    threading.Thread(target=start_order_consumer, daemon=True).start()
     yield
 
 
